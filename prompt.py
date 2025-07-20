@@ -34,5 +34,3 @@ RESPONSE_TEMPLATES = {
         "ℹ️ Always consult a healthcare professional for persistent symptoms."
     )
 }
-
-DISCLAIMER = "\n🔒 Privacy Note: {mode_detail}"
