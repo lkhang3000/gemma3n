@@ -21,15 +21,10 @@ class ChatWindow:
     def create_widgets(self):
         # Header
         header_frame = ctk.CTkFrame(self.root, height=80)
-        header_frame.pack(fill="x", padx=20, pady=(20, 0))
+        header_frame.pack(fill="both", expand=True, padx=20, pady=20)
         header_frame.pack_propagate(False)
 
-        title_label = ctk.CTkLabel(
-            header_frame,
-            text="🤖 Gemma Chatbot Demo UI",
-            font=ctk.CTkFont(size=22, weight="bold")
-        )
-        title_label.pack(pady=20)
+
 
         # Chat frame
         chat_frame = ctk.CTkFrame(self.root)
@@ -44,13 +39,57 @@ class ChatWindow:
         )
         self.chat_display.pack(fill="both", expand=True, padx=20, pady=(20, 10))
 
+        # Toggle menu 
+        def toggle_button():
+            def close_menu():
+                toggle_menu_frm.destroy()
+                self.toggle_btn.configure(text='☰')
+                self.toggle_btn.configure(command=toggle_button)
+                
+            self.window_height = self.root.winfo_height()
+            toggle_menu_frm = ctk.CTkFrame(self.root, fg_color='#158aaf', width=200, height=self.window_height)
+            toggle_menu_frm.place(x=18, y=85)
+    
+            self.toggle_btn.configure(text='X')
+            self.toggle_btn.configure(command=close_menu)
+
+             # button Chat History
+            chatHistory_btn = ctk.CTkButton(
+                toggle_menu_frm, 
+                text='Chat History', 
+                font=ctk.CTkFont(size=16, weight="bold"),
+                fg_color='white',
+                text_color='#158aaf',
+                width=160,
+                height=40
+            )
+            chatHistory_btn.place(x=20, y=50)
+
+        
+        self.toggle_btn = ctk.CTkButton(
+            header_frame,
+            text='☰',
+            fg_color='#158aaf',
+            text_color='white',
+            font=ctk.CTkFont(weight="bold", size=10),
+            command=toggle_button  
+        )
+        self.toggle_btn.pack(side="left")
+
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text="Gemma Chatbot Demo UI",
+            font=ctk.CTkFont(size=22, weight="bold")
+        )
+        title_label.pack(expand=True, pady=20)
+
         # Input
         input_frame = ctk.CTkFrame(chat_frame)
         input_frame.pack(fill="x", padx=20, pady=(0, 20))
 
         self.message_entry = ctk.CTkEntry(
             input_frame,
-            placeholder_text="Nhập tin nhắn của bạn...",
+            placeholder_text="What do you want to know?...",
             font=ctk.CTkFont(size=12),
             height=40
         )
@@ -58,7 +97,7 @@ class ChatWindow:
 
         self.send_button = ctk.CTkButton(
             input_frame,
-            text="Gửi",
+            text="Send",
             command=self.send_message,
             width=80,
             height=40,
@@ -68,7 +107,7 @@ class ChatWindow:
 
         self.clear_button = ctk.CTkButton(
             input_frame,
-            text="Xóa",
+            text="Clear Chat",
             command=self.clear_chat,
             width=60,
             height=40,
@@ -83,7 +122,7 @@ class ChatWindow:
 
         self.status_label = ctk.CTkLabel(
             status_frame,
-            text="🟡 Chưa kết nối AI",
+            text="System has not been initialized yet. Please wait...",
             font=ctk.CTkFont(size=11)
         )
         self.status_label.pack(pady=15)
@@ -105,7 +144,7 @@ class ChatWindow:
 
     def clear_chat(self):
         self.chat_display.delete("0.0", "end")
-        self.add_message("Đã xóa toàn bộ cuộc hội thoại. 🧹", "system")
+        self.add_message("Chat cleared. 🧹", "system")
 
     def add_message(self, message, sender):
         timestamp = time.strftime("%H:%M:%S")
