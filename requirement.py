@@ -1,11 +1,4 @@
-def _validate_mode(self, mode: str) -> str:
-        """Ensure valid operation mode is selected"""
-        valid_modes = ("local", "server", "auto")
-        if mode.lower() not in valid_modes:
-            raise ValueError(f"Invalid mode '{mode}'. Must be: {valid_modes}")
-        return mode.lower()
-
-    def _initialize_system(self) -> None:
+def _initialize_system(self) -> None:
         """Initialize system with hardware detection"""
         # Hardware capabilities
         self.system_info = {
