@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import messagebox
+from ui.sign_up import SignUp
 import threading
 import queue
 import time
@@ -16,6 +17,7 @@ class ChatWindow:
 
         self.is_model_loaded = False
         self.response_queue = queue.Queue()
+
         self.create_widgets()
 
     def create_widgets(self):
@@ -64,6 +66,20 @@ class ChatWindow:
                 height=40
             )
             chatHistory_btn.place(x=20, y=50)
+
+            #Sign Up button
+            login_btn = ctk.CTkButton(
+                toggle_menu_frm,
+                text = 'Sign Up',
+                font=ctk.CTkFont(size=16, weight="bold"),
+                fg_color='white',
+                text_color='#158aaf',
+                width=160,
+                height=40,
+                command=lambda: SignUp(self.root) 
+            )
+
+            login_btn.place(x = 20, y = 105)
 
         
         self.toggle_btn = ctk.CTkButton(

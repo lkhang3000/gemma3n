@@ -1,7 +1,18 @@
+from typing import List
+import csv
+
 class User:
     def __init__(self, name: str, email: str):
-        self._name = name
-        self._email = email
+        self.name = name
+        self.email = email
     
-    def User(self):
-        self._
+class loginSystem:
+    def __init__(self):
+        self.log: List[User] = []
+
+    def signUp(self, name: str, email: str):
+       newUser = User(name, email)
+       self.log.append(newUser)
+       return newUser
+
+    
