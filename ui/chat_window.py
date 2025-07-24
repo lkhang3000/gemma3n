@@ -1,9 +1,17 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from ui.sign_up import SignUp
 import threading
 import queue
 import time
+import sys
+import os
+
+try:
+    from back_end.chatbot_backend import GUIChatbot
+    BACKEND_AVAILABLE = True
+except ImportError as e:
+    print(f"Backend import error: {e}")
+    BACKEND_AVAILABLE = False
 
 class ChatWindow:
     def __init__(self):
@@ -17,6 +25,16 @@ class ChatWindow:
 
         self.is_model_loaded = False
         self.response_queue = queue.Queue()
+        
+        # Initialize chatbot backend
+        if BACKEND_AVAILABLE:
+            self.chatbot = GUIChatbot(
+                mode="auto",
+                status_callback=self.update_status,
+                progress_callback=self.update_progress
+            )
+        else:
+            self.chatbot = None
 
         self.create_widgets()
 
@@ -76,7 +94,7 @@ class ChatWindow:
                 text_color='#158aaf',
                 width=160,
                 height=40,
-                command=lambda: SignUp(self.root) 
+                command=lambda: print("Login clicked")  # Placeholder cho SignUp 
             )
 
             login_btn.place(x = 20, y = 105)
@@ -154,9 +172,31 @@ class ChatWindow:
         message = self.message_entry.get().strip()
         if not message:
             return
+            
         self.add_message(message, "user")
         self.message_entry.delete(0, "end")
-        self.add_message("⚠️ Chưa có backend AI xử lý tin nhắn.", "system")
+        
+        def simple_response():
+            time.sleep(0.5)
+            if "hi" in message.lower():
+                response = "Hello! Tôi là Gemma Chatbot."
+            else:
+                response = f"Bạn nói: {message}"
+            self.add_message(response, "ai")
+        
+        threading.Thread(target=simple_response, daemon=True).start()
+
+    def update_status(self, status_text):
+        """Update status label from backend"""
+        if hasattr(self, 'status_label'):
+            self.status_label.configure(text=status_text)
+            self.root.update_idletasks()
+
+    def update_progress(self, progress_value):
+        """Update progress bar from backend"""
+        if hasattr(self, 'progress_bar'):
+            self.progress_bar.set(progress_value)
+            self.root.update_idletasks()
 
     def clear_chat(self):
         self.chat_display.delete("0.0", "end")
