@@ -1,3 +1,195 @@
 2025-07-24 00:57:18,445 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
 2025-07-24 00:57:24,100 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
 2025-07-24 01:12:05,600 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-26 16:57:21,005 - httpx - INFO - HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2025-07-26 16:57:21,007 - back_end.chatbot_backend - WARNING - Could not list models: 'name'
+2025-07-26 16:57:23,131 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-26 17:00:51,698 - httpx - INFO - HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2025-07-26 17:00:51,699 - back_end.chatbot_backend - WARNING - Could not list models: 'name'
+2025-07-26 17:00:53,814 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-26 18:54:57,922 - httpx - INFO - HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2025-07-26 18:54:57,927 - back_end.chatbot_backend - WARNING - Could not list models: 'name'
+2025-07-26 18:55:00,061 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-26 19:02:37,071 - httpx - INFO - HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2025-07-26 19:02:37,075 - back_end.chatbot_backend - WARNING - Could not list models: 'name'
+2025-07-26 19:02:39,223 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-26 19:03:11,144 - httpx - INFO - HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2025-07-26 19:03:11,145 - back_end.chatbot_backend - WARNING - Could not list models: 'name'
+2025-07-26 19:03:13,236 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-27 00:28:02,818 - httpx - INFO - HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2025-07-27 00:28:02,824 - back_end.chatbot_backend - WARNING - Could not list models: 'name'
+2025-07-27 00:28:04,947 - back_end.chatbot_backend - ERROR - Initialization error: Connection test failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-07-27 00:32:22,904 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:32:22,908 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 00:32:22,951 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 00:32:34,000 - back_end.chatbot_backend - INFO - Checking emergency for text: 'hi'
+2025-07-27 00:32:34,000 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 00:32:47,804 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:32:47,805 - back_end.chatbot_backend - INFO - Local processing completed in 13.81s
+2025-07-27 00:33:07,494 - back_end.chatbot_backend - INFO - Conversation history reset
+2025-07-27 00:38:32,782 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:38:32,786 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 00:38:32,848 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 00:38:43,580 - back_end.chatbot_backend - INFO - Checking emergency for text: 'chest pain'
+2025-07-27 00:38:43,581 - back_end.chatbot_backend - INFO - Emergency detected (direct): chest pain
+2025-07-27 00:39:15,690 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:39:15,691 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 00:39:15,728 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 00:39:23,368 - back_end.chatbot_backend - INFO - Checking emergency for text: 'headache'
+2025-07-27 00:39:23,368 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 00:39:35,313 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:39:35,314 - back_end.chatbot_backend - INFO - Local processing completed in 11.95s
+2025-07-27 00:48:08,226 - back_end.chatbot_backend - INFO - Checking emergency for text: 'i have a backache'
+2025-07-27 00:48:08,237 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 00:48:22,356 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:48:22,371 - back_end.chatbot_backend - INFO - Local processing completed in 14.13s
+2025-07-27 00:50:21,883 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 00:50:27,635 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 00:50:27,636 - back_end.chatbot_backend - INFO - Local processing completed in 5.75s
+2025-07-27 01:32:07,951 - back_end.chatbot_backend - INFO - Checking emergency for text: 'i painful'
+2025-07-27 01:32:07,963 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 01:32:31,997 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 01:32:32,085 - back_end.chatbot_backend - INFO - Local processing completed in 24.12s
+2025-07-27 01:32:46,968 - back_end.chatbot_backend - INFO - Checking emergency for text: 'hi'
+2025-07-27 01:32:46,969 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 01:32:57,557 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 01:32:57,559 - back_end.chatbot_backend - INFO - Local processing completed in 10.59s
+2025-07-27 14:38:55,594 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 14:38:55,597 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 14:38:55,646 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 14:38:59,054 - back_end.chatbot_backend - INFO - Checking emergency for text: 'hi'
+2025-07-27 14:38:59,054 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 14:39:13,095 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 14:39:13,097 - back_end.chatbot_backend - INFO - Local processing completed in 14.04s
+2025-07-27 14:45:15,528 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 14:45:15,534 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 14:45:15,633 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 14:45:18,378 - back_end.chatbot_backend - INFO - Checking emergency for text: 'hi'
+2025-07-27 14:45:18,378 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 14:45:31,665 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 14:45:31,665 - back_end.chatbot_backend - INFO - Local processing completed in 13.29s
+2025-07-27 14:45:55,138 - back_end.chatbot_backend - INFO - Checking emergency for text: 'i am feeling unwell'
+2025-07-27 14:45:55,138 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 14:46:01,058 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 14:46:01,059 - back_end.chatbot_backend - INFO - Local processing completed in 5.92s
+2025-07-27 15:00:52,531 - back_end.chatbot_backend - ERROR - Initialization error: 'condition_list'
+2025-07-27 15:09:18,946 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:09:18,950 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 15:09:18,999 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 15:09:27,994 - back_end.chatbot_backend - INFO - Checking emergency for text: 'i am feeling unwell'
+2025-07-27 15:09:27,994 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 15:09:43,650 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:09:43,651 - back_end.chatbot_backend - INFO - Local processing completed in 15.66s
+2025-07-27 15:12:23,537 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:12:23,541 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 15:12:23,601 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 15:14:50,988 - back_end.chatbot_backend - INFO - Checking emergency for text: 'i am feeling unwell'
+2025-07-27 15:14:50,995 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 15:14:50,995 - back_end.chatbot_backend - INFO - Checking condition for text: 'i am feeling unwell'
+2025-07-27 15:14:50,996 - back_end.chatbot_backend - INFO - Condition detected: unwell
+2025-07-27 15:15:03,475 - back_end.chatbot_backend - INFO - Checking emergency for text: 'i am feeling nauseous'
+2025-07-27 15:15:03,475 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 15:15:03,476 - back_end.chatbot_backend - INFO - Checking condition for text: 'i am feeling nauseous'
+2025-07-27 15:15:03,476 - back_end.chatbot_backend - INFO - Condition detected: nauseous
+2025-07-27 15:15:21,715 - back_end.chatbot_backend - INFO - Checking emergency for text: 'headache'
+2025-07-27 15:15:21,716 - back_end.chatbot_backend - INFO - No emergency detected
+2025-07-27 15:15:21,716 - back_end.chatbot_backend - INFO - Checking condition for text: 'headache'
+2025-07-27 15:15:21,716 - back_end.chatbot_backend - INFO - No condition detected
+2025-07-27 15:15:34,814 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:15:34,827 - back_end.chatbot_backend - INFO - Local processing completed in 13.11s
+2025-07-27 15:39:19,378 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:39:19,383 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 15:39:19,426 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 15:39:35,023 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:39:35,025 - back_end.chatbot_backend - INFO - Local processing completed in 14.74s
+2025-07-27 15:39:56,939 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:39:56,939 - back_end.chatbot_backend - INFO - Local processing completed in 3.64s
+2025-07-27 15:43:04,243 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:43:04,247 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 15:43:04,292 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 15:43:18,466 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:43:18,467 - back_end.chatbot_backend - INFO - Local processing completed in 13.43s
+2025-07-27 15:50:36,013 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:50:36,017 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 15:50:36,066 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 15:50:54,642 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:50:54,645 - back_end.chatbot_backend - INFO - Local processing completed in 14.44s
+2025-07-27 15:53:55,618 - back_end.chatbot_backend - ERROR - Initialization error: name 'CONDITION_LIST' is not defined
+2025-07-27 15:54:59,794 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:54:59,798 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 15:54:59,848 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 15:55:30,335 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 15:55:30,336 - back_end.chatbot_backend - INFO - Local processing completed in 23.36s
+2025-07-27 16:03:06,890 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 16:03:06,894 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 16:03:06,942 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 16:13:34,508 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 16:13:34,512 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 16:13:34,561 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 16:16:53,303 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 16:16:53,306 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 16:16:53,351 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 16:22:02,808 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 16:22:02,812 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 16:22:02,865 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 16:44:16,093 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 16:44:16,098 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 16:44:16,166 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 16:44:54,517 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 16:44:54,519 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 16:44:54,559 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:04:30,216 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:04:30,223 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:04:30,308 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:08:32,789 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:08:32,793 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:08:32,834 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:09:35,867 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:09:35,871 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:09:35,917 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:11:00,323 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:11:00,327 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:11:00,370 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:13:14,157 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:13:14,162 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:13:14,263 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:19:14,528 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:19:14,532 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:19:14,598 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:23:29,208 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:23:29,212 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:23:29,289 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:23:56,526 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:23:56,528 - back_end.chatbot_backend - INFO - Local processing completed in 25.58s
+2025-07-27 17:30:40,797 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:30:40,800 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:30:40,844 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:31:07,401 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:31:07,401 - back_end.chatbot_backend - INFO - Local processing completed in 15.85s
+2025-07-27 17:33:40,272 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:33:40,278 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:33:40,348 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:34:11,933 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:34:11,936 - back_end.chatbot_backend - INFO - Local processing completed in 20.64s
+2025-07-27 17:36:52,623 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:36:52,647 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:36:52,827 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:37:16,321 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:37:16,323 - back_end.chatbot_backend - INFO - Local processing completed in 17.62s
+2025-07-27 17:37:31,216 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:37:31,218 - back_end.chatbot_backend - INFO - Local processing completed in 5.26s
+2025-07-27 17:38:39,554 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:38:39,559 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:38:39,623 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:38:58,137 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:38:58,138 - back_end.chatbot_backend - INFO - Local processing completed in 14.93s
+2025-07-27 17:39:41,547 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:39:41,552 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:39:41,635 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:40:05,776 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:40:05,778 - back_end.chatbot_backend - INFO - Local processing completed in 22.27s
+2025-07-27 17:43:44,443 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:43:44,448 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-27 17:43:44,522 - back_end.chatbot_backend - INFO - GUI System initialized in local mode with model gemma:2b
+2025-07-27 17:44:10,194 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-27 17:44:10,196 - back_end.chatbot_backend - INFO - Local processing completed in 23.39s

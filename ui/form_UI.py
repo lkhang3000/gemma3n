@@ -1,15 +1,15 @@
 #this code is used for handling the sign up function
 import customtkinter as ctk
 from tkinter import messagebox, ttk
-from back_end.login_logout import loginSystem
+from back_end.form import loginSystem
 
-class SignUp:
+class Form:
  #customize the sign up window
     def __init__(self, root):
             self.login_system = loginSystem()
 
             self.window = ctk.CTkToplevel(root)
-            self.window.title("Sign Up")
+            self.window.title("Medical Heath Form")
             self.window.geometry("400x300")
             self.window.grab_set()
             self.Handle()
@@ -18,13 +18,13 @@ class SignUp:
         #create the buttons, just UI
 
         #user 
-        u_label = ttk.Label(self.window, text = "username")
+        u_label = ttk.Label(self.window, text = "fullname")
         u_label.place(relx = 0.1, rely = 0.2)
 
         u_entry = ttk.Entry(self.window)
         u_entry.place(relx = 0.3, rely = 0.2, relwidth = 0.6)
 
-        u_label = ttk.Label(self.window, text = "email")
+        u_label = ttk.Label(self.window, text = "age")
         u_label.place(relx = 0.1, rely = 0.4)
 
         u_entry = ttk.Entry(self.window)
