@@ -4,6 +4,7 @@
 #2. Does the chatbot has the ability to detect which one should be added
 #Check if the sign up recognize user by their name+age+gender(because there are more than one judges will see our code so I can't make the sign up to just be used by 1 user)
 #Some recommendation: We can have a line that say "This information will help the chatbot to create the medical profile, save conversation to history,..., For the best experience, please sign up"
+#Merge medicalchatbot into GUIchatbot(I can't do this because some frontends are using backend logic, so while you editing the GUIchatbot, you can change these code base on your editing)
 import streamlit as st
 from datetime import datetime
 from typing import List, Dict
@@ -37,35 +38,35 @@ class UserProfile:
         return "\n".join(lines)
 
 # --- ChatBot Logic ---
-class MedicalChatBot:
-    def __init__(self, system_prompt: str):
-        self.conversation_history = [{"role": "system", "content": system_prompt}]
-
-    def _add_to_history(self, role: str, content: str):
-        self.conversation_history.append({"role": role, "content": content})
-        if len(self.conversation_history) > 7:
-            self.conversation_history = [self.conversation_history[0]] + self.conversation_history[-6:]
-
-    def generate_response(self, user_input: str) -> str:
-        self._add_to_history("user", user_input)
-        prompt = self._format_prompt()
-        try:
-            response = ollama.generate(
-                model="gemma3n:e2b",
-                prompt=prompt,
-                options={"temperature": 0.3}
-            )["response"]
-        except Exception as e:
-            response = f"❌ Error generating response: {e}"
-        self._add_to_history("assistant", response)
-        return response
-
-    def _format_prompt(self) -> str:
-        return "\n".join(
-            f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}"
-            for m in self.conversation_history[1:]
-        ) + "\nAssistant:"
-
+#class MedicalChatBot:
+  #  def __init__(self, system_prompt: str):
+ #       self.conversation_history = [{"role": "system", "content": system_prompt}]
+#
+    #def _add_to_history(self, role: str, content: str):
+   #     self.conversation_history.append({"role": role, "content": content})
+  #      if len(self.conversation_history) > 7:
+ #           self.conversation_history = [self.conversation_history[0]] + self.conversation_history[-6:]
+#
+    #def generate_response(self, user_input: str) -> str:
+        #self._add_to_history("user", user_input)
+       # prompt = self._format_prompt()
+      #  try:
+         #   response = ollama.generate(
+        #        model="gemma3n:e2b",
+       #         prompt=prompt,
+      #          options={"temperature": 0.3}
+     #       )["response"]
+    #    except Exception as e:
+   #         response = f"❌ Error generating response: {e}"
+  #      self._add_to_history("assistant", response)
+ #       return response
+#
+    #def _format_prompt(self) -> str:
+    #    return "\n".join(
+   #         f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}"
+  #          for m in self.conversation_history[1:]
+ #       ) + "\nAssistant:"
+#MMay delete this part when merging to GUIchatbot
     def is_medical_input(self, message: str) -> bool:
         classify_prompt = (
             f"Does the following message contain medical information "
