@@ -85,19 +85,18 @@ class MedicalChatBot:
             return False
 
 # --- System Setup ---
-st.set_page_config("Medical Chatbot", page_icon="🧬")
-st.title("🩺 Medical Chatbot with Auto Health Profile (Gemma)")
+#st.set_page_config("Medical Chatbot", page_icon="🧬")
+#st.title("🩺 Medical Chatbot with Auto Health Profile (Gemma)")
 
-SYSTEM_PROMPT = (
-    "You are a medical assistant. Follow strict safety rules:\n"
-    "1. Detect critical emergencies (e.g. chest pain, choking, suicidal thoughts).\n"
-    "   If present, reply only with: '🚨 EMERGENCY: Call local emergency services.'\n"
-    "2. Otherwise:\n"
-    "   - Suggest possible causes (2-3)\n"
-    "   - Recommend actions (1-2)\n"
-    "   - Always say: 'Consult a healthcare professional.'\n"
-    "3. Never give a diagnosis or medication name."
-)
+#SYSTEM_PROMPT = (
+#  you are a medical assistant. Follow strict safety rules:\n"
+ #  "   If present, reply only with: '🚨 EMERGENCY: Call local emergency services.'\n"
+  #  "2. Otherwise:\n"
+   # "   - Suggest possible causes (2-3)\n"
+    #"   - Recommend actions (1-2)\n"
+    #"   - Always say: 'Consult a healthcare professional.'\n"
+    #"3. Never give a diagnosis or medication name."
+#)
 #Can be deleted if overlap with the lastest code
 
 # --- Session State ---
