@@ -1,180 +1,168 @@
+#Check UI(just have a quick look at it)
+#Check the Chatbot logic( to see if there any problem with the form)
+#1. Does the form updated the user's medical information correctly. 
+#2. Does the chatbot has the ability to detect which one should be added
+#Check if the sign up recognize user by their name+age+gender(because there are more than one judges will see our code so I can't make the sign up to just be used by 1 user)
+#Some recommendation: We can have a line that say "This information will help the chatbot to create the medical profile, save conversation to history,..., For the best experience, please sign up"
 import streamlit as st
 from datetime import datetime
-import json
-import os
-import uuid
+from typing import List, Dict
+import ollama
 
-# Medical Profile System (Backend)
-# Can be used to replace loginSystem import
-class MedicalProfileSystem:
-    def __init__(self):
-        self.profiles_file = "medical_profiles.json"
-        self.profiles = self._load_profiles()
-    
-    def _load_profiles(self):
-        if os.path.exists(self.profiles_file):
-            with open(self.profiles_file, 'r') as f:
-                return json.load(f)
-        return {}
-    
-    def _save_profiles(self):
-        with open(self.profiles_file, 'w') as f:
-            json.dump(self.profiles, f, indent=2)
-    
-    def create_profile(self, user_data):
-        profile_id = str(uuid.uuid4())
-        
-        self.profiles[profile_id] = {
-            "basic_info": {
-                "name": user_data.get("name"),
-                "age": user_data.get("age"),
-                "gender": user_data.get("gender"),
-                "created_date": datetime.now().strftime("%Y-%m-%d")
-            },
-            "medical_details": {},
-            "conversation_history": []
-        }
-        self._save_profiles()
-        return profile_id
-    
-    def update_medical_details(self, profile_id, details):
-        if profile_id not in self.profiles:
-            return False
-        
+# --- User Profile ---
+class UserProfile:
+    def __init__(self, name: str, age: int, gender: str):
+        self.name = name
+        self.age = age
+        self.gender = gender
+        self.details_by_date: Dict[str, List[str]] = {}
+
+    def update_detail(self, new_detail: str):
         today = datetime.now().strftime("%Y-%m-%d")
-        if today not in self.profiles[profile_id]["medical_details"]:
-            self.profiles[profile_id]["medical_details"][today] = []
-        
-        self.profiles[profile_id]["medical_details"][today].append({
-            "detail": details,
-            "timestamp": datetime.now().strftime("%H:%M:%S")
-        })
-        self._save_profiles()
-        return True
-    
-    def add_conversation(self, profile_id, role, content):
-        if profile_id not in self.profiles:
+        if today not in self.details_by_date:
+            self.details_by_date[today] = []
+        self.details_by_date[today].append(new_detail)
+
+    def get_summary(self) -> str:
+        lines = [
+            f"👤 Name: {self.name}",
+            f"🎂 Age: {self.age}",
+            f"⚧ Gender: {self.gender}",
+            "📝 Health Notes:"
+        ]
+        for date, entries in sorted(self.details_by_date.items()):
+            lines.append(f"📅 {date}:")
+            for d in entries:
+                lines.append(f"  - {d}")
+        return "\n".join(lines)
+
+# --- ChatBot Logic ---
+class MedicalChatBot:
+    def __init__(self, system_prompt: str):
+        self.conversation_history = [{"role": "system", "content": system_prompt}]
+
+    def _add_to_history(self, role: str, content: str):
+        self.conversation_history.append({"role": role, "content": content})
+        if len(self.conversation_history) > 7:
+            self.conversation_history = [self.conversation_history[0]] + self.conversation_history[-6:]
+
+    def generate_response(self, user_input: str) -> str:
+        self._add_to_history("user", user_input)
+        prompt = self._format_prompt()
+        try:
+            response = ollama.generate(
+                model="gemma3n:e2b",
+                prompt=prompt,
+                options={"temperature": 0.3}
+            )["response"]
+        except Exception as e:
+            response = f"❌ Error generating response: {e}"
+        self._add_to_history("assistant", response)
+        return response
+
+    def _format_prompt(self) -> str:
+        return "\n".join(
+            f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}"
+            for m in self.conversation_history[1:]
+        ) + "\nAssistant:"
+
+    def is_medical_input(self, message: str) -> bool:
+        classify_prompt = (
+            f"Does the following message contain medical information "
+            f"that should be saved to a medical profile?\n"
+            f"Only answer 'yes' or 'no'.\n\n"
+            f"Message: \"{message}\""
+        )
+        try:
+            response = ollama.generate(
+                model="gemma3n:e2b",
+                prompt=classify_prompt,
+                options={"temperature": 0.2}
+            )["response"].strip().lower()
+            return response.startswith("yes")
+        except Exception as e:
+            st.error(f"❌ Classification error: {e}")
             return False
-        
-        self.profiles[profile_id]["conversation_history"].append({
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
-        self._save_profiles()
-        return True
-    
-    def get_profile(self, profile_id):
-        return self.profiles.get(profile_id)
 
-# Streamlit UI (Frontend)
-# Change signup(or form) to 
-def main():
-    st.title("Medical Chatbot with Profile System")
-    profile_system = MedicalProfileSystem()
-    
-    # Initialize session state
-    if 'profile_id' not in st.session_state:
-        st.session_state.profile_id = None
-    if 'show_profile' not in st.session_state:
-        st.session_state.show_profile = False
-    
-    # Sign Up Form
-    with st.sidebar:
-        st.header("Create Medical Profile")
-        with st.form("signup_form"):
-            name = st.text_input("Full Name")
-            age = st.number_input("Age", min_value=1, max_value=120)
-            gender = st.selectbox("Gender", ["Male", "Female", "Other", "Prefer not to say"])
-            conditions = st.text_area("Existing Medical Conditions")
-            
-            if st.form_submit_button("Create Profile"):
-                if name and age and gender:
-                    profile_id = profile_system.create_profile({
-                        "name": name,
-                        "age": age,
-                        "gender": gender,
-                        "conditions": conditions
-                    })
-                    st.session_state.profile_id = profile_id
-                    st.success("Profile created successfully!")
-                else:
-                    st.error("Please fill all required fields")
-    
-    # Chat Interface
-    st.header("Chat with Medical Assistant")
-    
-    if st.session_state.profile_id:
-        # Display conversation history
-        profile = profile_system.get_profile(st.session_state.profile_id)
-        
-        for msg in profile["conversation_history"][-5:]:  # Show last 5 messages
-            with st.chat_message(msg["role"]):
-                st.write(msg["content"])
-        
-        # Chat input
-        if prompt := st.chat_input("Describe your symptoms..."):
-            # Add user message to history
-            profile_system.add_conversation(
-                st.session_state.profile_id,
-                "user",
-                prompt
-            )
-            
-            # Detect medical details in user input
-            medical_keywords = ["pain", "hurt", "symptom", "feel", "condition", "diagnos"]
-            if any(keyword in prompt.lower() for keyword in medical_keywords):
-                profile_system.update_medical_details(
-                    st.session_state.profile_id,
-                    f"User reported: {prompt}"
-                )
-            
-            # Generate bot response (simplified for demo)
-            bot_response = f"I've noted your symptoms: {prompt}. You should monitor these and consult a doctor if they persist."
-            
-            # Add bot response to history
-            profile_system.add_conversation(
-                st.session_state.profile_id,
-                "assistant",
-                bot_response
-            )
-            
-            # Display new messages
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("assistant"):
-                st.write(bot_response)
-        
-        # Toggle for medical profile view
-        if st.button("View/Update Medical Profile"):
-            st.session_state.show_profile = not st.session_state.show_profile
-        
-        if st.session_state.show_profile:
-            display_medical_profile(profile)
-    else:
-        st.warning("Please create a medical profile to start chatting")
+# --- System Setup ---
+st.set_page_config("Medical Chatbot", page_icon="🧬")
+st.title("🩺 Medical Chatbot with Auto Health Profile (Gemma)")
 
-def display_medical_profile(profile):
-    st.header("Medical Profile")
-    
-    with st.expander("Basic Information"):
-        st.write(f"**Name:** {profile['basic_info']['name']}")
-        st.write(f"**Age:** {profile['basic_info']['age']}")
-        st.write(f"**Gender:** {profile['basic_info']['gender']}")
-        st.write(f"**Profile Created:** {profile['basic_info']['created_date']}")
-    
-    with st.expander("Medical Details"):
-        if not profile['medical_details']:
-            st.write("No medical details recorded yet")
-        else:
-            for date, details in profile['medical_details'].items():
-                st.subheader(f"Date: {date}")
-                for detail in details:
-                    st.write(f"- {detail['timestamp']}: {detail['detail']}")
-    
-    with st.expander("Full Conversation History"):
-        for msg in profile['conversation_history']:
-            st.write(f"**{msg['role'].title()}** ({msg['timestamp']}): {msg['content']}")
+SYSTEM_PROMPT = (
+    "You are a medical assistant. Follow strict safety rules:\n"
+    "1. Detect critical emergencies (e.g. chest pain, choking, suicidal thoughts).\n"
+    "   If present, reply only with: '🚨 EMERGENCY: Call local emergency services.'\n"
+    "2. Otherwise:\n"
+    "   - Suggest possible causes (2-3)\n"
+    "   - Recommend actions (1-2)\n"
+    "   - Always say: 'Consult a healthcare professional.'\n"
+    "3. Never give a diagnosis or medication name."
+)
+#Can be deleted if overlap with the lastest code
 
-if __name__ == "__main__":
-    main()
+# --- Session State ---
+if "chatbot" not in st.session_state:
+    st.session_state.chatbot = MedicalChatBot(SYSTEM_PROMPT)
+if "users" not in st.session_state:
+    st.session_state.users: Dict[str, UserProfile] = {}
+if "active_user" not in st.session_state:
+    st.session_state.active_user = ""
+if "show_profile" not in st.session_state:
+    st.session_state.show_profile = False
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# --- Sign Up Without Email ---
+with st.expander("📝 Sign Up"):
+    with st.form("signup"):
+        name = st.text_input("Name")
+        age = st.number_input("Age", min_value=0, step=1)
+        gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+        submitted = st.form_submit_button("Register or Log In")
+
+        if submitted:
+            if not name:
+                st.warning("Name is required.")
+            else:
+                # Create a unique ID from basic info
+                user_key = f"{name.lower()}_{age}_{gender.lower()}"
+                if user_key not in st.session_state.users:
+                    st.session_state.users[user_key] = UserProfile(name, age, gender)
+                st.session_state.active_user = user_key
+                st.success(f"User {name} is now active.")
+
+# --- Chat UI ---
+st.subheader("💬 Chat")
+if not st.session_state.active_user:
+    st.info("Please sign up or log in first.")
+else:
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        user_input = st.text_input("Your message:")
+    with col2:
+        if st.button("📋 Show Profile"):
+            st.session_state.show_profile = True
+
+    if user_input:
+        user_key = st.session_state.active_user
+        profile = st.session_state.users[user_key]
+        bot = st.session_state.chatbot
+
+        reply = bot.generate_response(user_input)
+
+        st.session_state.messages.append(("🧑", user_input))
+        st.session_state.messages.append(("🤖", reply))
+
+        if bot.is_medical_input(user_input):
+            profile.update_detail(user_input)
+
+# --- Display Chat Messages ---
+for speaker, msg in st.session_state.messages:
+    st.markdown(f"**{speaker}**: {msg}")
+
+# --- View Profile On Demand ---
+if st.session_state.show_profile:
+    user_key = st.session_state.active_user
+    profile = st.session_state.users[user_key]
+    st.subheader("📋 Medical Profile")
+    st.text_area("Health Summary", profile.get_summary(), height=300)
