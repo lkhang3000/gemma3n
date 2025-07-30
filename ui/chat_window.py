@@ -30,8 +30,13 @@ class ChatWindow:
         self.is_generating = False
         
         # Initialize medical form system
-        self.medicalForm = Form()
-        
+        try:
+            self.medicalForm = Form()
+            print("✅ Medical form system initialized")
+        except Exception as e:
+            print(f"❌ Medical form initialization error: {e}")
+            self.medicalForm = None
+    
         # Initialize chatbot backend
         if BACKEND_AVAILABLE:
             try:
@@ -52,7 +57,7 @@ class ChatWindow:
         # Add welcome message
         self.add_message("Welcome to Medical Chatbot! 🏥", "system")
         if BACKEND_AVAILABLE and self.chatbot:
-            self.add_message("System initializing...", "system")
+            self.add_message("System initializing... Please wait", "system")
         else:
             self.add_message("⚠️ Backend not available - Running in demo mode", "system")
 
@@ -230,48 +235,60 @@ class ChatWindow:
         
         # Use backend if available
         if self.chatbot and BACKEND_AVAILABLE:
-            # Show "thinking" message
-            thinking_msg = "🤔 Analyzing..."
-            self.add_message(thinking_msg, "system")
-            
-            # Generate response asynchronously
-            def response_callback(response):
-                try:
-                    # Remove "thinking" message by getting current content and removing last system message
-                    current_content = self.chat_display.get("1.0", "end")
-                    lines = current_content.strip().split('\n')
+            try:
+                # Check if chatbot has the required method
+                if hasattr(self.chatbot, 'generate_response_async'):
+                    # Show "thinking" message
+                    thinking_msg = "🤔 Analyzing..."
+                    self.add_message(thinking_msg, "system")
                     
-                    # Find and remove the thinking message lines
-                    filtered_lines = []
-                    skip_next = False
-                    for i, line in enumerate(lines):
-                        if "🤔 Analyzing" in line:
-                            skip_next = True
-                            continue
-                        if skip_next and line.strip() == "":
+                    # Generate response asynchronously
+                    def response_callback(response):
+                        try:
+                            # Remove "thinking" message by getting current content and removing last system message
+                            current_content = self.chat_display.get("1.0", "end")
+                            lines = current_content.strip().split('\n')
+                            
+                            # Find and remove the thinking message lines
+                            filtered_lines = []
                             skip_next = False
-                            continue
-                        if not skip_next:
-                            filtered_lines.append(line)
+                            for i, line in enumerate(lines):
+                                if "🤔 Analyzing" in line:
+                                    skip_next = True
+                                    continue
+                                if skip_next and line.strip() == "":
+                                    skip_next = False
+                                    continue
+                                if not skip_next:
+                                    filtered_lines.append(line)
+                            
+                            # Clear and re-add content without thinking message
+                            self.chat_display.delete("1.0", "end")
+                            if filtered_lines:
+                                self.chat_display.insert("1.0", '\n'.join(filtered_lines) + '\n')
+                            
+                            # Add AI response
+                            self.add_message(response, "ai")
+                            
+                        except Exception as e:
+                            print(f"Error in response callback: {e}")
+                            self.add_message(f"❌ Error showing response: {str(e)}", "system")
+                        
+                        finally:
+                            # Re-enable send button
+                            self.send_button.configure(state="normal")
+                            self.is_generating = False
                     
-                    # Clear and re-add content without thinking message
-                    self.chat_display.delete("1.0", "end")
-                    if filtered_lines:
-                        self.chat_display.insert("1.0", '\n'.join(filtered_lines) + '\n')
+                    self.chatbot.generate_response_async(message, response_callback)
+                else:
+                    # Method not available, use fallback
+                    raise AttributeError("generate_response_async method not available")
                     
-                    # Add AI response
-                    self.add_message(response, "ai")
-                    
-                except Exception as e:
-                    print(f"Error in response callback: {e}")
-                    self.add_message(f"❌ Error showing response: {str(e)}", "system")
-                
-                finally:
-                    # Re-enable send button
-                    self.send_button.configure(state="normal")
-                    self.is_generating = False
-            
-            self.chatbot.generate_response_async(message, response_callback)
+            except Exception as e:
+                print(f"Backend error: {e}")
+                self.add_message(f"❌ Backend error: {str(e)}", "system")
+                self.send_button.configure(state="normal")
+                self.is_generating = False
         else:
             # Fallback to simple response if backend not available
             def simple_response():
@@ -321,23 +338,43 @@ class ChatWindow:
         """Reset the conversation in backend and clear chat"""
         if self.chatbot and BACKEND_AVAILABLE:
             try:
-                self.chatbot.reset_conversation()
-                self.clear_chat()
-                self.add_message("Chat conversation has been delete. Now you can start over! 🔄", "system")
+                # Check if reset method exists
+                if hasattr(self.chatbot, 'reset_conversation'):
+                    success = self.chatbot.reset_conversation()
+                    if success:
+                        self.clear_chat()
+                        self.add_message("✅ Chat conversation has been reset. Now you can start over! 🔄", "system")
+                    else:
+                        self.add_message("❌ Failed to reset conversation", "system")
+                else:
+                    # Fallback if method doesn't exist
+                    self.clear_chat()
+                    self.add_message("✅ Chat has been cleared! 🔄", "system")
             except Exception as e:
                 self.add_message(f"❌ Error resetting conversation: {str(e)}", "system")
         else:
             self.clear_chat()
-            self.add_message("Demo reset sucessfull! 🔄", "system")
+            self.add_message("✅ Demo reset successful! 🔄", "system")
 
     def show_chat_history(self):
         """Show conversation history in a popup"""
         if self.chatbot and BACKEND_AVAILABLE:
             try:
-                status = self.chatbot.get_status()
+                # Check if method exists
+                if hasattr(self.chatbot, 'get_status'):
+                    status = self.chatbot.get_status()
+                else:
+                    status = {
+                        'initialized': hasattr(self.chatbot, 'is_initialized') and self.chatbot.is_initialized,
+                        'mode': getattr(self.chatbot, 'mode', 'unknown'),
+                        'conversation_turns': len(getattr(self.chatbot, 'conversation_history', [])) - 1
+                    }
+                
+                history = getattr(self.chatbot, 'conversation_history', [])
+
                 history_window = ctk.CTkToplevel(self.root)
                 history_window.title("Chat History")
-                history_window.geometry("600x400")
+                history_window.geometry("700x600")
                 
                 history_text = ctk.CTkTextbox(history_window, wrap="word")
                 history_text.pack(fill="both", expand=True, padx=20, pady=20)
@@ -346,55 +383,76 @@ class ChatWindow:
                 history_info += f"Mode: {status['mode']}\n"
                 if 'model' in status:
                     history_info += f"Model: {status['model']}\n"
-                history_info += f"Number of chats: {status['conversation_turns']}\n\n"
+                history_info += f"Number of messages: {status['conversation_turns']}\n\n"
+
+                if len(history) > 1:  # Has conversation beyond system prompt
+                    history_info += "=== CONVERSATION HISTORY ===\n\n"
+                    for i, msg in enumerate(history[1:], 1):  # Skip system prompt
+                        role = "👤 You" if msg['role'] == 'user' else "🤖 AI Assistant"
+                        history_info += f"[{i}] {role}:\n"
+                        content = msg['content'][:200] + "..." if len(msg['content']) > 200 else msg['content']
+                        history_info += f"{content}\n\n"
+                        history_info += "-" * 50 + "\n\n"
+                else:
+                    history_info += "=== CONVERSATION HISTORY ===\n\n"
+                    history_info += "No conversation history yet. Start chatting to see history here!\n"
                 
                 history_text.insert("1.0", history_info)
                 
             except Exception as e:
-                messagebox.showerror("Error", f"Can not show chat history: {str(e)}")
+                messagebox.showerror("Error", f"Cannot show chat history: {str(e)}")
         else:
-            messagebox.showinfo("Information", "There's no history to show")
+            messagebox.showinfo("Information", "Chat history not available in demo mode")
 
     def show_system_info(self):
         """Show system information in a popup"""
         if self.chatbot and BACKEND_AVAILABLE:
             try:
-                requirements = self.chatbot.get_system_requirements()
-                
+                # Check if method exists
+                if hasattr(self.chatbot, 'get_system_requirements'):
+                    requirements = self.chatbot.get_system_requirements()
+                else:
+                    requirements = {"error": "System requirements method not available"}
+            
                 info_window = ctk.CTkToplevel(self.root)
-                info_window.title("Thông tin Hệ thống")
+                info_window.title("System Information")
                 info_window.geometry("700x500")
                 
                 info_text = ctk.CTkTextbox(info_window, wrap="word")
                 info_text.pack(fill="both", expand=True, padx=20, pady=20)
                 
                 if "error" in requirements:
-                    info_content = f"❌ Lỗi: {requirements['error']}"
+                    info_content = f"❌ Error: {requirements['error']}\n\n"
+                    info_content += "Basic System Info:\n"
+                    info_content += f"• Python: {sys.version}\n"
+                    info_content += f"• Backend Available: {'✅' if BACKEND_AVAILABLE else '❌'}\n"
+                    info_content += f"• Chatbot Initialized: {'✅' if self.chatbot else '❌'}\n"
                 else:
                     current = requirements['current_specs']
                     recommended = requirements['recommended_specs']
                     meets = requirements['meets_requirements']
                     
-                    info_content = "=== THÔNG TIN HỆ THỐNG ===\n\n"
-                    info_content += "Cấu hình hiện tại:\n"
-                    info_content += f"• CPU Cores: {current['cpu_cores']} ({'✅' if meets['cpu'] else '❌'} {recommended['cpu_cores']} khuyến nghị)\n"
-                    info_content += f"• RAM: {current['ram_gb']}GB ({'✅' if meets['ram'] else '❌'} {recommended['ram_gb']}GB khuyến nghị)\n"
+                    info_content = "=== SYSTEM INFORMATION ===\n\n"
+                    info_content += "Current Specifications:\n"
+                    info_content += f"• CPU Cores: {current['cpu_cores']} ({'✅' if meets['cpu'] else '❌'} recommended: {recommended['cpu_cores']})\n"
+                    info_content += f"• RAM: {current['ram_gb']:.1f}GB ({'✅' if meets['ram'] else '❌'} recommended: {recommended['ram_gb']}GB)\n"
                     info_content += f"• AVX Support: {'✅' if current['has_avx'] else '❌'}\n"
                     info_content += f"• OS: {current['os_type']}\n\n"
                     
-                    info_content += f"Đáp ứng yêu cầu: {'✅ Có' if meets['overall'] else '❌ Không'}\n\n"
+                    info_content += f"Meets Requirements: {'✅ Yes' if meets['overall'] else '❌ No'}\n\n"
                     
-                    info_content += "Gợi ý cải thiện hiệu suất:\n"
-                    for tip in requirements['performance_tips']:
-                        info_content += f"• {tip}\n"
-                
+                    if requirements['performance_tips']:
+                        info_content += "Performance Improvement Tips:\n"
+                        for tip in requirements['performance_tips']:
+                            info_content += f"• {tip}\n"
+            
                 info_text.insert("1.0", info_content)
                 
             except Exception as e:
-                messagebox.showerror("Lỗi", f"Không thể hiển thị thông tin hệ thống: {str(e)}")
+                messagebox.showerror("Error", f"Cannot show system information: {str(e)}")
         else:
-            system_info = f"Backend: ❌ Không khả dụng\nOllama: Chưa kiểm tra\nPython: {sys.version}\nOS: {os.name}"
-            messagebox.showinfo("Thông tin Hệ thống", system_info)
+            system_info = f"Backend: ❌ Not Available\nPython: {sys.version}\nOS: {os.name}"
+            messagebox.showinfo("System Information", system_info)
 
     def add_message(self, message, sender):
         """Add message to chat display with proper formatting"""
@@ -463,12 +521,18 @@ class ChatWindow:
                 status_label.configure(text="❌ Please fill in all fields", text_color="red")
                 return
             
-            new_user = self.medicalForm.signUp(name, age)
-            status_label.configure(text="✅ Saved successfully!", text_color="green")
-            
-            # Clear the form after successful save
-            name_entry.delete(0, "end")
-            age_entry.delete(0, "end")
+            try:
+                if self.medicalForm:
+                    new_user = self.medicalForm.signUp(name, age)
+                    status_label.configure(text="✅ Saved successfully!", text_color="green")
+                    
+                    # Clear the form after successful save
+                    name_entry.delete(0, "end")
+                    age_entry.delete(0, "end")
+                else:
+                    status_label.configure(text="❌ Medical form system not available", text_color="red")
+            except Exception as e:
+                status_label.configure(text=f"❌ Error: {str(e)}", text_color="red")
         
         # Submit button
         submit_btn = ctk.CTkButton(
