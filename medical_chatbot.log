@@ -210,3 +210,11 @@
 2025-07-30 12:12:56,464 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
 2025-07-30 12:13:19,666 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
 2025-07-30 12:13:19,667 - back_end.chatbot_backend - INFO - Local processing completed in 16.13s
+2025-07-30 13:48:51,399 - __main__ - INFO - Starting Medical Chatbot with modular architecture...
+2025-07-30 13:49:01,241 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-30 13:49:01,244 - back_end.chatbot_backend - INFO - Local model gemma:2b test successful
+2025-07-30 13:49:34,508 - httpx - INFO - HTTP Request: POST http://127.0.0.1:11434/api/generate "HTTP/1.1 200 OK"
+2025-07-30 13:49:34,509 - back_end.chatbot_backend - INFO - Local processing completed in 18.41s
+2025-07-30 13:59:59,979 - __main__ - INFO - Starting Medical Chatbot with modular architecture...
+2025-07-30 14:00:00,000 - __main__ - CRITICAL - Application failed: No module named 'streamlit'
+2025-07-30 14:06:22,401 - __main__ - INFO - Starting Medical Chatbot with modular architecture...
