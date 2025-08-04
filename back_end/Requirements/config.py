@@ -64,37 +64,37 @@ def _initialize_async(self) -> None:
         init_thread = threading.Thread(target=init_worker, daemon=True)
         init_thread.start()
 
-    def _check_cpu_instructions(self) -> bool:
-        """Verify CPU supports required instructions (AVX)"""
-        try:
-            import cpuinfo
-            cpu_flags = cpuinfo.get_cpu_info().get('flags', [])
-            return 'avx' in cpu_flags
-        except Exception as e:
-            logger.warning(f"CPU check failed: {str(e)}")
-            return True 
-        
-    def _determine_optimal_mode(self) -> str:
-        """Automatically select best operation mode"""
-        min_local_requirements = (
-            self.system_info["cpu_cores"] >= 4
-            and self.system_info["ram_gb"] >= 8
-            and self.system_info["has_avx"]
-        )
-        return "local" if min_local_requirements else "server"
+def _check_cpu_instructions(self) -> bool:
+    """Verify CPU supports required instructions (AVX)"""
+    try:
+        import cpuinfo
+        cpu_flags = cpuinfo.get_cpu_info().get('flags', [])
+        return 'avx' in cpu_flags
+    except Exception as e:
+        logger.warning(f"CPU check failed: {str(e)}")
+        return True 
+    
+def _determine_optimal_mode(self) -> str:
+    """Automatically select best operation mode"""
+    min_local_requirements = (
+        self.system_info["cpu_cores"] >= 4
+        and self.system_info["ram_gb"] >= 8
+        and self.system_info["has_avx"]
+    )
+    return "local" if min_local_requirements else "server"
 
-    def _warn_if_unsupported_hardware(self) -> None:
-        """Notify user about potential performance issues via GUI"""
-        if self.mode == "local":
-            warnings = []
-            if self.system_info["cpu_cores"] < 4:
-                warnings.append(f"Limited CPU cores ({self.system_info['cpu_cores']}/4 recommended)")
-            if self.system_info["ram_gb"] < 8:
-                warnings.append(f"Limited RAM ({self.system_info['ram_gb']:.1f}GB/8GB recommended)")
-            if not self.system_info["has_avx"]:
-                warnings.append("Missing AVX CPU instructions (required for optimal performance)")
+def _warn_if_unsupported_hardware(self) -> None:
+    """Notify user about potential performance issues via GUI"""
+    if self.mode == "local":
+        warnings = []
+        if self.system_info["cpu_cores"] < 4:
+            warnings.append(f"Limited CPU cores ({self.system_info['cpu_cores']}/4 recommended)")
+        if self.system_info["ram_gb"] < 8:
+            warnings.append(f"Limited RAM ({self.system_info['ram_gb']:.1f}GB/8GB recommended)")
+        if not self.system_info["has_avx"]:
+            warnings.append("Missing AVX CPU instructions (required for optimal performance)")
 
-            if warnings:
-                warning_msg = "Performance warnings detected:\n" + "\n".join(f"- {w}" for w in warnings)
-                self.status_callback(warning_msg)
-                logger.warning(f"Hardware limitations detected: {warnings}")
+        if warnings:
+            warning_msg = "Performance warnings detected:\n" + "\n".join(f"- {w}" for w in warnings)
+            self.status_callback(warning_msg)
+            logger.warning(f"Hardware limitations detected: {warnings}")

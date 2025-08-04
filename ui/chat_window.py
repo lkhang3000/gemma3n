@@ -1,292 +1,321 @@
+import warnings
+import logging
 import streamlit as st
 import time
-import queue
 import threading
 import sys
 import os
-from back_end.form import Form
+
+# Suppress warnings
+warnings.filterwarnings("ignore")
+logging.getLogger("streamlit.runtime.scriptrunner.script_runner").setLevel(logging.ERROR)
+
+# Global flags
+BACKEND_AVAILABLE = False
+FORM_AVAILABLE = False
+
+# Try to import backend and form
+try:
+    from form_UI import Form
+    FORM_AVAILABLE = True
+except ImportError as e:
+    print(f"Form UI not available: {e}")
+    Form = None
 
 try:
     from back_end.chatbot_backend import GUIChatbot
     BACKEND_AVAILABLE = True
-    print("✅ Backend imported successfully")
 except ImportError as e:
-    print(f"❌ Backend import error: {e}")
-    BACKEND_AVAILABLE = False
+    print(f"Backend not available: {e}")
+    GUIChatbot = None
 
 class ChatWindow:
     def __init__(self):
-        st.set_page_config(
-            page_title="Medical Chatbot",
-            page_icon="🏥",
-            layout="wide",
-            initial_sidebar_state="expanded"
-        )
+        # Set page config first
+        if 'page_configured' not in st.session_state:
+            st.set_page_config(
+                page_title="Medical Chatbot",
+                layout="wide",
+                initial_sidebar_state="expanded"
+            )
+            st.session_state.page_configured = True
         
-        self.is_model_loaded = False
-        self.response_queue = queue.Queue()
-        self.is_generating = False
+        # Initialize components
+        self.chatbot = None
+        self.medicalForm = None
         
-        # Initialize medical form system
-        self.medicalForm = Form()
-        
-        # Initialize chatbot backend
+        # Try to initialize backend
         if BACKEND_AVAILABLE:
             try:
                 self.chatbot = GUIChatbot(
-                    mode="auto",
+                    mode="local",
                     status_callback=self.update_status,
                     progress_callback=self.update_progress
                 )
-                print("✅ Chatbot initialized")
             except Exception as e:
-                print(f"❌ Chatbot initialization error: {e}")
+                print(f"Chatbot initialization failed: {e}")
                 self.chatbot = None
-        else:
-            self.chatbot = None
-            
+        
+        # Try to initialize form
+        if FORM_AVAILABLE and Form:
+            try:
+                self.medicalForm = Form()
+            except Exception as e:
+                print(f"Form initialization failed: {e}")
+                self.medicalForm = None
+        
         # Initialize session state
+        self._initialize_session_state()
+
+    def _initialize_session_state(self):
+        """Initialize all session state variables"""
         if 'messages' not in st.session_state:
             st.session_state.messages = []
             self.add_message("Welcome to Medical Chatbot! 🏥", "system")
-            if BACKEND_AVAILABLE and self.chatbot:
-                self.add_message("System initializing...", "system")
+            if self.chatbot:
+                self.add_message("System ready! You can start chatting.", "system")
             else:
-                self.add_message("⚠️ Backend not available - Running in demo mode", "system")
+                self.add_message("Running in demo mode - Backend not available", "system")
                 
         if 'status' not in st.session_state:
-            st.session_state.status = "System has not been initialized, please wait..."
+            st.session_state.status = "System ready" if self.chatbot else "Demo mode"
             
         if 'progress' not in st.session_state:
-            st.session_state.progress = 0
+            st.session_state.progress = 1.0 if self.chatbot else 0.5
+
+        if 'is_generating' not in st.session_state:
+            st.session_state.is_generating = False
 
     def add_message(self, message, sender):
         """Add message to chat history"""
-        if sender == "user":
-            avatar = "👤"
-            prefix = "You"
-        elif sender == "system":
-            avatar = "🔔"
-            prefix = "System"
-        else:  # ai
-            avatar = "🤖"
-            prefix = "Medical AI"
-            
+        avatars = {
+            "user": "👤",
+            "system": "🔔", 
+            "ai": "🤖"
+        }
+        
+        avatar = avatars.get(sender, "💬")
         timestamp = time.strftime("%H:%M:%S")
-        full_message = f"[{timestamp}] {avatar} {prefix}: {message}"
         
         st.session_state.messages.append({
             "role": sender,
             "content": message,
             "avatar": avatar,
-            "full": full_message
+            "timestamp": timestamp
         })
 
     def update_status(self, status_text):
         """Update status from backend"""
-        st.session_state.status = status_text
+        try:
+            st.session_state.status = status_text
+        except:
+            pass
 
     def update_progress(self, progress_value):
         """Update progress from backend"""
-        st.session_state.progress = progress_value
+        try:
+            st.session_state.progress = progress_value
+        except:
+            pass
 
     def clear_chat(self):
         """Clear chat history"""
         st.session_state.messages = []
-        self.add_message("Chat cleared. �", "system")
+        self.add_message("Chat cleared! 🧹", "system")
+        st.rerun()
 
     def reset_conversation(self):
-        """Reset the conversation in backend and clear chat"""
-        if self.chatbot and BACKEND_AVAILABLE:
+        """Reset the conversation"""
+        if self.chatbot and hasattr(self.chatbot, 'reset_conversation'):
             try:
                 self.chatbot.reset_conversation()
                 st.session_state.messages = []
-                self.add_message("Chat conversation has been reset. You can start over! 🔄", "system")
+                self.add_message("Conversation reset! You can start over. 🔄", "system")
             except Exception as e:
-                self.add_message(f"❌ Error resetting conversation: {str(e)}", "system")
+                self.add_message(f"Reset error: {str(e)}", "system")
         else:
-            self.clear_chat()
-            self.add_message("Demo reset successful! 🔄", "system")
-
-    def show_chat_history(self):
-        """Show conversation history in a popup"""
-        if self.chatbot and BACKEND_AVAILABLE:
-            try:
-                status = self.chatbot.get_status()
-                history_info = f"Status: {'Initialized' if status['initialized'] else 'Uninitialized'}\n"
-                history_info += f"Mode: {status['mode']}\n"
-                if 'model' in status:
-                    history_info += f"Model: {status['model']}\n"
-                history_info += f"Number of chats: {status['conversation_turns']}\n\n"
-                
-                st.sidebar.text_area("Chat History Info", history_info, height=200)
-            except Exception as e:
-                st.sidebar.error(f"Cannot show chat history: {str(e)}")
-        else:
-            st.sidebar.info("No history to show")
+            st.session_state.messages = []
+            self.add_message("Demo conversation reset! 🔄", "system")
+        st.rerun()
 
     def show_system_info(self):
-        """Show system information"""
-        if self.chatbot and BACKEND_AVAILABLE:
-            try:
-                requirements = self.chatbot.get_system_requirements()
-                
-                if "error" in requirements:
-                    info_content = f"❌ Error: {requirements['error']}"
-                else:
-                    current = requirements['current_specs']
-                    recommended = requirements['recommended_specs']
-                    meets = requirements['meets_requirements']
-                    
-                    info_content = "=== SYSTEM INFORMATION ===\n\n"
-                    info_content += "Current specs:\n"
-                    info_content += f"• CPU Cores: {current['cpu_cores']} ({'✅' if meets['cpu'] else '❌'} {recommended['cpu_cores']} recommended)\n"
-                    info_content += f"• RAM: {current['ram_gb']}GB ({'✅' if meets['ram'] else '❌'} {recommended['ram_gb']}GB recommended)\n"
-                    info_content += f"• AVX Support: {'✅' if current['has_avx'] else '❌'}\n"
-                    info_content += f"• OS: {current['os_type']}\n\n"
-                    
-                    info_content += f"Meets requirements: {'✅ Yes' if meets['overall'] else '❌ No'}\n\n"
-                    
-                    info_content += "Performance improvement suggestions:\n"
-                    for tip in requirements['performance_tips']:
-                        info_content += f"• {tip}\n"
-                
-                st.sidebar.text_area("System Information", info_content, height=400)
-            except Exception as e:
-                st.sidebar.error(f"Cannot show system information: {str(e)}")
-        else:
-            system_info = f"Backend: ❌ Not available\nOllama: Not checked\nPython: {sys.version}\nOS: {os.name}"
-            st.sidebar.info(system_info)
+        """Show system information in sidebar"""
+        with st.sidebar.expander("System Information", expanded=False):
+            if self.chatbot and hasattr(self.chatbot, 'get_system_requirements'):
+                try:
+                    requirements = self.chatbot.get_system_requirements()
+                    if "error" not in requirements:
+                        current = requirements.get('current_specs', {})
+                        st.write(f"CPU Cores: {current.get('cpu_cores', 'Unknown')}")
+                        st.write(f"RAM: {current.get('ram_gb', 'Unknown')}GB")
+                        st.write(f"OS: {current.get('os_type', 'Unknown')}")
+                    else:
+                        st.write("System info not available")
+                except:
+                    st.write("Cannot retrieve system info")
+            else:
+                st.write("Backend: ❌ Not available")
+                st.write(f"Form: {'✅' if self.medicalForm else '❌'}")
 
     def show_medical_form(self):
-        """Show medical form popup"""
-        with st.sidebar.form("medical_form"):
-            st.subheader("Create Medical Form")
+        """Show medical form in sidebar"""
+        with st.sidebar.expander("Medical Form", expanded=False):
+            if self.medicalForm:
+                with st.form("medical_form"):
+                    st.write("Fill out this form to contact a doctor:")
+                    name = st.text_input("Name:")
+                    age = st.text_input("Age:")
+                    symptoms = st.text_area("Symptoms:")
+                    
+                    if st.form_submit_button("Submit Form"):
+                        if name and age:
+                            try:
+                                # Assuming signUp method exists
+                                result = self.medicalForm.signUp(name, age)
+                                st.success("Form submitted successfully! ✅")
+                                self.add_message(f"Medical form submitted for {name}", "system")
+                            except Exception as e:
+                                st.error(f"Form submission error: {str(e)}")
+                        else:
+                            st.error("Please fill in required fields")
+            else:
+                st.write("Medical form not available in demo mode")
+
+    def generate_demo_response(self, user_input):
+        """Generate demo response when backend is not available"""
+        user_lower = user_input.lower()
+        
+        # Emergency keywords
+        emergency_keywords = ["chest pain", "difficulty breathing", "heart attack", "stroke", "emergency"]
+        if any(keyword in user_lower for keyword in emergency_keywords):
+            return "🚨 EMERGENCY DETECTED!\n\n1. Call emergency services immediately (911/112/115)\n2. Do not wait for further instructions\n3. Follow operator guidance\n\n⚠️ This is a demo response. Please contact real emergency services!"
+        
+        # Greetings
+        if any(word in user_lower for word in ["hi", "hello", "hey"]):
+            return "Hello! I'm a medical chatbot assistant. I can provide general health information, but please consult healthcare professionals for serious conditions. How can I help you today?"
+        
+        # Form requests
+        if any(phrase in user_lower for phrase in ["form", "doctor", "appointment"]):
+            return "Medical form is available in the sidebar! Please fill it out to contact our medical team."
             
-            name = st.text_input("Name:", placeholder="Enter your name")
-            age = st.text_input("Age:", placeholder="Enter your age")
-            
-            submitted = st.form_submit_button("Submit")
-            
-            if submitted:
-                if not name or not age:
-                    st.error("Please fill in all fields")
-                    return
-                
-                new_user = self.medicalForm.signUp(name, age)
-                st.success("Saved successfully!")
+        # General medical questions
+        return f"Thank you for your question: '{user_input}'\n\n⚠️ This is a demo response. For real medical advice, please:\n\n1. Consult a healthcare professional\n2. Visit a medical clinic\n3. Call your local health hotline\n\nI'm running in demo mode as the backend is not available."
 
     def send_message(self, user_input):
         """Handle sending a message"""
         if not user_input.strip():
             return
             
-        if self.is_generating:
-            self.add_message("⚠️ We're working on the previous message, please wait...", "system")
+        if st.session_state.is_generating:
+            st.warning("Please wait for the current response to complete...")
             return
             
+        # Add user message
         self.add_message(user_input, "user")
         
-        # Disable send button to prevent spam
-        self.is_generating = True
+        # Set generating flag
+        st.session_state.is_generating = True
         
-        # Use backend if available
         if self.chatbot and BACKEND_AVAILABLE:
-            # Show "thinking" message
-            thinking_msg = "🤔 Analyzing..."
-            self.add_message(thinking_msg, "system")
-            
-            # Generate response asynchronously
+            # Use real backend
             def response_callback(response):
                 try:
-                    # Remove "thinking" message by getting current content and removing last system message
-                    if st.session_state.messages and st.session_state.messages[-1]["content"] == thinking_msg:
-                        st.session_state.messages.pop()
-                    
-                    # Add AI response
                     self.add_message(response, "ai")
-                    
+                    st.session_state.is_generating = False
+                    st.rerun()
                 except Exception as e:
-                    print(f"Error in response callback: {e}")
-                    self.add_message(f"❌ Error showing response: {str(e)}", "system")
-                
-                finally:
-                    # Re-enable send button
-                    self.is_generating = False
+                    self.add_message(f"Response error: {str(e)}", "system")
+                    st.session_state.is_generating = False
+                    st.rerun()
             
-            self.chatbot.generate_response_async(user_input, response_callback)
-        else:
-            # Fallback to simple response if backend not available
-            def simple_response():
+            def generate_response():
                 try:
-                    time.sleep(1)
-                    if any(keyword in user_input.lower() for keyword in ["chest pain", "difficulty breathing", "heart attack"]):
-                        response = "🚨 WARNING: The symptoms you described above can be serious!\n\n1. Please contact medical help immediately (115)\n2. Please do not hesitate with the help of a medical team.\n\n"
-                    elif "hi" in user_input.lower() or "hello" in user_input.lower():
-                        response = "Greetings, I am Medical Chatbot. I can provide you with necessary medical knowledge, but please directly consult a medical expert in urgent situations."
+                    if hasattr(self.chatbot, 'generate_response_async'):
+                        self.chatbot.generate_response_async(user_input, response_callback)
                     else:
-                        response = f"⚠️ Backend not available.\n\nYou said: '{user_input}'\n"
-                    
-                    self.add_message(response, "ai")
-                    
+                        response = self.chatbot.generate_response(user_input)
+                        response_callback(response)
                 except Exception as e:
-                    self.add_message(f"❌ Response generating error: {str(e)}", "system")
-                
-                finally:
-                    self.is_generating = False
+                    response_callback(f"Backend error: {str(e)}")
             
-            threading.Thread(target=simple_response, daemon=True).start()
+            threading.Thread(target=generate_response, daemon=True).start()
+            
+        else:
+            # Use demo response
+            def demo_response():
+                time.sleep(1)  # Simulate thinking
+                response = self.generate_demo_response(user_input)
+                self.add_message(response, "ai")
+                st.session_state.is_generating = False
+                st.rerun()
+            
+            threading.Thread(target=demo_response, daemon=True).start()
 
-    def render(self):
-        """Render the Streamlit UI"""
-        # Sidebar with controls
+    def render_sidebar(self):
+        """Render sidebar controls"""
         with st.sidebar:
-            st.title("Medical Chatbot Controls")
+            st.title("🏥 Medical Chatbot")
             
-            if st.button("Chat History"):
-                self.show_chat_history()
-                
-            if st.button("System Info"):
-                self.show_system_info()
-                
-            if st.button("Reset Chat"):
-                self.reset_conversation()
-                
-            if st.button("Clear Chat"):
-                self.clear_chat()
-                
-            if st.button("Create Medical Form"):
-                self.show_medical_form()
+            # Status
+            st.subheader("Status")
+            status_color = "🟢" if self.chatbot else "🟡"
+            st.write(f"{status_color} {st.session_state.status}")
             
-            # Status information
+            if st.session_state.progress > 0:
+                st.progress(st.session_state.progress)
+            
             st.divider()
-            st.subheader("System Status")
-            st.write(st.session_state.status)
-            st.progress(st.session_state.progress)
+            
+            # Controls
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🔄 Reset", use_container_width=True):
+                    self.reset_conversation()
+                    
+            with col2:
+                if st.button("🧹 Clear", use_container_width=True):
+                    self.clear_chat()
+            
+            # Information sections
+            self.show_system_info()
+            self.show_medical_form()
+            
+            # Chat statistics
+            st.divider()
+            st.write(f"💬 Messages: {len(st.session_state.messages)}")
+            st.write(f"🤖 Backend: {'✅' if self.chatbot else '❌'}")
 
-        # Main chat area
-        st.title("Medical Chatbot 🏥")
+    def render_chat(self):
+        """Render main chat interface"""
+        st.title("Medical Chatbot Assistant 🏥")
         
-        # Display chat messages
+        # Display messages
         for message in st.session_state.messages:
             with st.chat_message(message["role"], avatar=message["avatar"]):
                 st.write(message["content"])
+                if "timestamp" in message:
+                    st.caption(f"Time: {message['timestamp']}")
         
-        # User input
-        if prompt := st.chat_input("How are you doing?..."):
-            self.send_message(prompt)
+        # Input area
+        if st.session_state.is_generating:
+            st.chat_input("Generating response, please wait...", disabled=True)
+        else:
+            if prompt := st.chat_input("How can I help you today?"):
+                self.send_message(prompt)
 
     def run(self):
-        """Run the Streamlit application"""
+        """Main app runner"""
         try:
-            print("🚀 Starting Medical Chatbot (Streamlit)...")
-            self.render()
+            self.render_sidebar()
+            self.render_chat()
         except Exception as e:
-            st.error(f"Critical error: {str(e)}")
+            st.error(f"Application error: {str(e)}")
+            st.write("Please refresh the page or contact support.")
 
-if __name__ == "__main__":
-    try:
-        app = ChatWindow()
-        app.run()
-    except Exception as e:
-        st.error(f"Application startup error: {str(e)}")
+try:
+    app = ChatWindow()
+    app.run()
+except Exception as e:
+    st.error(f"Failed to start application: {str(e)}")
+    st.write("Please check your configuration and try again.")
+

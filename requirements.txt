@@ -1,8 +1,6 @@
-# Gemma Chatbot Requirements - Windows
-# Cài đặt: pip install -r requirements.txt
 
 # GUI Framework
-customtkinter>=5.2.0
+streamlit>=1.28.0
 
 # AI/ML Libraries
 transformers>=4.35.0

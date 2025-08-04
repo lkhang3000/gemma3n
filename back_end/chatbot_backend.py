@@ -1,14 +1,24 @@
 from typing import List, Dict, Optional, Callable
-from back_end.Conversation.handle_chatbot import ConversationHandler
-from back_end.prompt import SYSTEM_PROMPT, CRITICAL_SYMPTOMS, REASSURE_SENTENCES, DISCLAIMER
-import logging
+from Conversation.handle_chatbot import ConversationHandler
+import threading
 import ollama
-import time
 import requests
+import psutil
+import platform
+import logging
+import time
+import sys
+import os
+
+#import 
+# Add current directory to path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.extend([current_dir, parent_dir])
 
 logger = logging.getLogger(__name__)
 
-#Prompt 
+# Prompt (moved here instead of importing)
 SYSTEM_PROMPT = """You are a medical information assistant. Follow these rules IN ORDER:
 
 1. FIRST CHECK - ONLY for EXACT emergency symptoms ({critical_list}):
@@ -30,7 +40,6 @@ SYSTEM_PROMPT = """You are a medical information assistant. Follow these rules I
 5. For greetings: Greet politely and ask how you can help
 
 IMPORTANT: "feeling unwell" is NOT an emergency. Only treat as emergency if they mention EXACT words like "chest pain", "difficulty breathing", etc.
-
 
 Never provide diagnoses or recommend specific medications."""
 
@@ -57,31 +66,18 @@ class GUIChatbot(ConversationHandler):
         """
         Initialize chatbot for GUI integration
         """
+        super().__init__()
+        
         self.status_callback = status_callback or (lambda x: print(f"Status: {x}"))
         self.progress_callback = progress_callback or (lambda x: None)
         
-        self.mode = "local"  
+        self.mode = "local"
+        self.server_url = server_url
         self.model_path = model_path  
         self.conversation_history: List[Dict[str, str]] = []
         self.is_initialized = False
-        
-        self.current_model = "gemma:2b"
-        
-        # Initialize available models list
-        self.available_models = ["gemma:2b", "llama3.2:3b", "phi3:mini"]
-        
-        # Initialize system info
-        self.system_info = {
-            "cpu_cores": 4,
-            "ram_gb": 8,
-            "has_avx": True,
-            "os_type": "Windows"
-        }
-        
-        # Initialize mode details
-        self.mode_details = {
-            "local": "All processing occurs on your local device"
-        }
+        self.current_model = "gemma3n" 
+        self.system_info = self._get_system_info()
         
         # Start initialization
         self._initialize_async()
@@ -95,14 +91,7 @@ class GUIChatbot(ConversationHandler):
                 
                 # Hardware capabilities
                 self.status_callback("Checking hardware capabilities...")
-                import psutil
-                import platform
-                self.system_info = {
-                    "cpu_cores": psutil.cpu_count(logical=False) or 1,
-                    "ram_gb": psutil.virtual_memory().total / (1024 ** 3),
-                    "has_avx": self._check_cpu_instructions(),
-                    "os_type": platform.system()
-                }
+                self.system_info = self._get_system_info()
                 self.progress_callback(0.4)
 
                 # Initialize conversation with system prompt
@@ -116,22 +105,10 @@ class GUIChatbot(ConversationHandler):
                         )
                     }
                 ]
-                self.progress_callback(0.6)
-
-                # Test local model
-                self.status_callback("Testing local model...")
-                self._test_local_model()
-                self.progress_callback(0.9)
-                
-                self.is_initialized = True
-                self.progress_callback(1.0)
-                self.status_callback(f"Ready in {self.mode} mode with {self.current_model}")
-                
             except Exception as e:
+                logger.error(f"Initialization failed: {str(e)}")
                 self.status_callback(f"Initialization failed: {str(e)}")
-                logger.error(f"Initialization error: {e}")
 
-        import threading
         init_thread = threading.Thread(target=init_worker, daemon=True)
         init_thread.start()
 
@@ -148,9 +125,18 @@ class GUIChatbot(ConversationHandler):
         """Manage conversation history with rolling window"""
         self.conversation_history.append({"role": role, "content": content})
         
+        # Keep only recent conversation 
         if len(self.conversation_history) > 7:  
             self.conversation_history = [self.conversation_history[0]] + self.conversation_history[-6:]
-       
+
+    def get_status(self) -> dict:
+        """Get current system status"""
+        return {
+            "initialized": self.is_initialized,
+            "mode": self.mode,
+            "model": self.current_model,
+            "conversation_turns": len(self.conversation_history) - 1,
+        }
 
     def get_system_requirements(self) -> dict:
         """Get system requirements info"""
@@ -197,6 +183,7 @@ class GUIChatbot(ConversationHandler):
         """Reset conversation history"""
         try:
             if self.conversation_history:
+                # Keep only the system prompt
                 self.conversation_history = [self.conversation_history[0]]
             return True
         except Exception:
@@ -204,34 +191,14 @@ class GUIChatbot(ConversationHandler):
 
     def _validate_mode(self, mode: str) -> str:
         """Ensure valid operation mode is selected"""
-        valid_modes = ("local", "server", "auto")
+        valid_modes = ("local", "server", "auto", "fallback")
         if mode.lower() not in valid_modes:
             raise ValueError(f"Invalid mode '{mode}'. Must be: {valid_modes}")
         return mode.lower()
 
-    def _find_available_model(self) -> str:
-        """Find the first available model from the list"""
-        try:
-            models = ollama.list()
-            installed_models = [model['name'] for model in models.get('models', [])]
-            
-            for model in self.available_models:
-                if any(model in installed for installed in installed_models):
-                    logger.info(f"Found available model: {model}")
-                    return model
-            
-            if installed_models:
-                first_model = installed_models[0]
-                logger.info(f"Using first available model: {first_model}")
-                return first_model
-                
-        except Exception as e:
-            logger.warning(f"Could not list models: {e}")
-        
-        return "llama3.2:3b"
-
     def _test_local_model(self) -> None:
-        """Test if the local gemma:2b model is working"""
+        """Test if the local model is working"""
+            
         test_prompt = "Hello"
         try:
             ollama.generate(model=self.current_model, prompt=test_prompt, options={'num_predict': 1})
@@ -239,10 +206,11 @@ class GUIChatbot(ConversationHandler):
         except Exception as e:
             raise RuntimeError(f"Local model test failed: {str(e)}")
 
+#role prompting
     def _format_for_llm(self) -> str:
         """Engineer the final prompt sent to the LLM"""
         conversation = []
-        for msg in self.conversation_history[1:]:  
+        for msg in self.conversation_history[1:]:  # Skip system prompt
             if msg['role'] == 'user':
                 conversation.append(f"Patient: {msg['content']}")
             else:
@@ -257,6 +225,7 @@ class GUIChatbot(ConversationHandler):
 
     def _process_local(self, prompt: str) -> str:
         """Handle local Ollama processing"""
+            
         try:
             start_time = time.time()
             response = ollama.generate(
@@ -275,7 +244,7 @@ class GUIChatbot(ConversationHandler):
             return response['response']
         except Exception as e:
             logger.error(f"Local processing failed: {str(e)}")
-            raise RuntimeError(f"Local model unavailable: {str(e)}")
+            return self._fallback_response(prompt)
 
     def _process_remote(self, prompt: str) -> str:
         """Handle remote server processing"""
@@ -299,12 +268,63 @@ class GUIChatbot(ConversationHandler):
             latency = time.time() - start_time
             logger.info(f"Server response in {latency:.2f}s")
             return response.json().get('response', '')
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Server connection failed: {str(e)}")
-            raise RuntimeError(f"Server unavailable: {str(e)}")
         except Exception as e:
-            logger.error(f"Unexpected server error: {str(e)}")
-            raise RuntimeError(f"Server processing error: {str(e)}")
+            logger.error(f"Server processing failed: {str(e)}")
+            return self._fallback_response(prompt)
+
+    def generate_response_async(self, user_input: str, callback: Callable[[str], None]):
+        """Generate response asynchronously"""
+        def response_worker():
+            try:
+                # Add user input to conversation
+                self._add_to_conversation("user", user_input)
+                
+                # Generate response based on mode
+                if self.current_model == "fallback":
+                    response = self._fallback_response(user_input)
+                else:
+                    # Format prompt for LLM
+                    formatted_prompt = self._format_for_llm()
+                    response = self._process_local(formatted_prompt)
+                
+                # Add response to conversation
+                self._add_to_conversation("assistant", response)
+                
+                # Call callback with response
+                callback(response)
+                
+            except Exception as e:
+                error_msg = f"Error generating response: {str(e)}"
+                logger.error(error_msg)
+                callback(self._fallback_response(user_input))
+        
+        import threading
+        response_thread = threading.Thread(target=response_worker, daemon=True)
+        response_thread.start()
+
+    def generate_response(self, user_input: str) -> str:
+        """Generate response synchronously"""
+        try:
+            # Add user input to conversation
+            self._add_to_conversation("user", user_input)
+            
+            # Generate response based on mode
+            if self.current_model == "fallback" :
+                response = self._fallback_response(user_input)
+            else:
+                # Format prompt for LLM
+                formatted_prompt = self._format_for_llm()
+                response = self._process_local(formatted_prompt)
+            
+            # Add response to conversation
+            self._add_to_conversation("assistant", response)
+            
+            return response
+            
+        except Exception as e:
+            error_msg = f"Error generating response: {str(e)}"
+            logger.error(error_msg)
+            return self._fallback_response(user_input)
 
 
 
