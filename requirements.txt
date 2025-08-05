@@ -3,4 +3,3 @@ psutil>=5.9.0
 requests>=2.31.0
 ollama>=0.1.0
 py-cpuinfo>=9.0.0
-threading-timer>=1.0.0
