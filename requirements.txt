@@ -1,6 +1,8 @@
-
 # GUI Framework
 streamlit>=1.28.0
+
+# System Utilities
+psutil>=5.9.0
 
 # AI/ML Libraries
 transformers>=4.35.0
